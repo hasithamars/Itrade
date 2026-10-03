@@ -1,0 +1,6 @@
+{
+  "name": "AlphaPulse AI - Live Trading Indicator & Forecast Terminal",
+  "description": "Real-time trading indicator and signal intelligence terminal powered by multi-indicator technical analysis, live market feeds, scenario price projections, and AI-grounded world news catalysts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
