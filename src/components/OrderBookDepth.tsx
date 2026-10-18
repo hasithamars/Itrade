@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { IndicatorMetrics } from '../types/trading';
-import { Layers, ArrowDownUp, Zap } from 'lucide-react';
+import { Layers, ArrowDownUp, Zap, RefreshCw } from 'lucide-react';
 
 interface OrderBookDepthProps {
   orderBook: IndicatorMetrics['orderBook'];
   currentPrice: number;
   symbol: string;
   currency?: string;
+  onRefresh?: () => void;
 }
 
 interface MicroTrade {
@@ -22,6 +23,7 @@ export const OrderBookDepth: React.FC<OrderBookDepthProps> = ({
   currentPrice,
   symbol,
   currency = 'THB',
+  onRefresh,
 }) => {
   const { bids, asks, bidRatio, spread } = orderBook;
   const isDecimals4 = symbol.includes('EUR');
@@ -72,6 +74,15 @@ export const OrderBookDepth: React.FC<OrderBookDepthProps> = ({
         <div className="flex items-center gap-1.5 text-xs font-mono text-slate-500">
           <ArrowDownUp className="w-3 h-3 text-slate-400" />
           <span>Spread: {spread.toFixed(isDecimals4 ? 4 : 2)}</span>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors ml-1"
+              title="Refresh Order Book Depth &amp; Liquidity"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </div>
 

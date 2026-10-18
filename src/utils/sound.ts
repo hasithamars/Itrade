@@ -132,6 +132,40 @@ class SoundManager {
     });
   }
 
+  // ⚠️ High-Urgency Reversal Warning Sound (Pulsing Siren Alarm)
+  public playReversalAlertSound() {
+    if (!this.soundEnabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const pulses = [
+      { time: now, freq: 880, dur: 0.12 },
+      { time: now + 0.14, freq: 587.33, dur: 0.12 },
+      { time: now + 0.28, freq: 880, dur: 0.14 },
+      { time: now + 0.44, freq: 523.25, dur: 0.18 },
+    ];
+
+    pulses.forEach((p) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(p.freq, p.time);
+
+      gain.gain.setValueAtTime(0.001, p.time);
+      gain.gain.linearRampToValueAtTime(0.22, p.time + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, p.time + p.dur);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(p.time);
+      osc.stop(p.time + p.dur);
+    });
+  }
+
   // Speech Alert Announcement
   public speakAlert(text: string) {
     if (!this.voiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
