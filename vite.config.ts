@@ -28,6 +28,8 @@ export default defineConfig(() => {
             }
             if (fs.existsSync(distDir)) {
               fs.writeFileSync(noJekyll, '');
+              const docsDir = path.resolve(__dirname, 'docs');
+              fs.cpSync(distDir, docsDir, { recursive: true });
             }
           } catch (e) {
             console.warn('GitHub pages helper note:', e);
