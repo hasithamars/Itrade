@@ -21,6 +21,7 @@ import {
   generateSignalFromIndicators,
   SUPPORTED_ASSETS,
 } from './utils/indicators';
+import { safeGetItem, safeSetItem } from './utils/storage';
 import { soundManager } from './utils/sound';
 import { TerminalNavbar } from './components/TerminalNavbar';
 import { CandleChart } from './components/CandleChart';
@@ -68,10 +69,10 @@ export default function App() {
   const [isAccountSizeModalOpen, setIsAccountSizeModalOpen] = useState<boolean>(false);
   const [calibratingPriceInput, setCalibratingPriceInput] = useState<string>('');
   const [autoDispatchTelegram, setAutoDispatchTelegram] = useState<boolean>(() => {
-    return localStorage.getItem('tg_auto_dispatch') !== 'false';
+    return safeGetItem('tg_auto_dispatch', 'true') !== 'false';
   });
   const [highReliabilityOnly, setHighReliabilityOnly] = useState<boolean>(() => {
-    return localStorage.getItem('high_reliability_only') !== 'false';
+    return safeGetItem('high_reliability_only', 'true') !== 'false';
   });
   const [lastDispatchedNotification, setLastDispatchedNotification] = useState<{
     time: string;
@@ -80,7 +81,7 @@ export default function App() {
   } | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('tg_auto_dispatch', autoDispatchTelegram ? 'true' : 'false');
+    safeSetItem('tg_auto_dispatch', autoDispatchTelegram ? 'true' : 'false');
   }, [autoDispatchTelegram]);
 
   // Active asset: defaults to Gold (XAUUSD) or Bitcoin (BTC/USD)
@@ -104,7 +105,7 @@ export default function App() {
 
   // User Account Balance (Default $5.00 Micro Account) & Demo Paper Trading
   const [balance, setBalance] = useState<number>(() => {
-    return parseFloat(localStorage.getItem('user_account_balance') || '5.00');
+    return parseFloat(safeGetItem('user_account_balance', '5.00') || '5.00');
   });
   const [openTrades, setOpenTrades] = useState<PaperTrade[]>([]);
   const [closedTrades, setClosedTrades] = useState<PaperTrade[]>([]);
@@ -127,12 +128,12 @@ export default function App() {
 
   // User Forex Leverage & Lot Size Settings
   const [forexLeverage, setForexLeverage] = useState<number>(() => {
-    return parseInt(localStorage.getItem('forex_leverage') || '500', 10);
+    return parseInt(safeGetItem('forex_leverage', '500') || '500', 10);
   });
   const forexLeverageRef = useRef<number>(forexLeverage);
 
   const [forexLotSize, setForexLotSize] = useState<number>(() => {
-    return parseFloat(localStorage.getItem('forex_lot_size') || '0.01');
+    return parseFloat(safeGetItem('forex_lot_size', '0.01') || '0.01');
   });
   const forexLotSizeRef = useRef<number>(forexLotSize);
 
@@ -147,7 +148,7 @@ export default function App() {
   const [reversalAlert, setReversalAlert] = useState<MarketReversalAlert | null>(null);
   const [reversalAlertsHistory, setReversalAlertsHistory] = useState<MarketReversalAlert[]>([]);
   const [reversalAlertsEnabled, setReversalAlertsEnabled] = useState<boolean>(() => {
-    return localStorage.getItem('reversal_alerts_enabled') !== 'false';
+    return safeGetItem('reversal_alerts_enabled', 'true') !== 'false';
   });
   const activeSignalForReversalRef = useRef<LiveSignal | null>(null);
   const lastReversalAlertTimestampRef = useRef<number>(0);
@@ -359,8 +360,8 @@ export default function App() {
             // Telegram Reversal Notification
             if (autoDispatchTelegram) {
               const formattedRev = formatTelegramReversalAlert(detectedRev);
-              const token = localStorage.getItem('tg_bot_token') || undefined;
-              const chat = localStorage.getItem('tg_chat_id') || undefined;
+              const token = safeGetItem('tg_bot_token') || undefined;
+              const chat = safeGetItem('tg_chat_id') || undefined;
 
               fetch('/api/telegram/dispatch', {
                 method: 'POST',
@@ -397,8 +398,8 @@ export default function App() {
 
           if (isFreshSymbolOrDirection || cooldownPassed) {
             const formatted = formatTelegramSignal(sig);
-            const token = localStorage.getItem('tg_bot_token') || undefined;
-            const chat = localStorage.getItem('tg_chat_id') || undefined;
+            const token = safeGetItem('tg_bot_token') || undefined;
+            const chat = safeGetItem('tg_chat_id') || undefined;
 
             fetch('/api/telegram/dispatch', {
               method: 'POST',
@@ -458,14 +459,14 @@ export default function App() {
   const handleSaveForexLeverage = useCallback((newLev: number) => {
     setForexLeverage(newLev);
     forexLeverageRef.current = newLev;
-    localStorage.setItem('forex_leverage', newLev.toString());
+    safeSetItem('forex_leverage', newLev.toString());
     syncMarketAndGenerateSignal(selectedAsset, timeframe, balance, highReliabilityOnly, newLev, forexLotSizeRef.current);
   }, [selectedAsset, timeframe, balance, highReliabilityOnly, syncMarketAndGenerateSignal]);
 
   const handleSaveForexLotSize = useCallback((newLot: number) => {
     setForexLotSize(newLot);
     forexLotSizeRef.current = newLot;
-    localStorage.setItem('forex_lot_size', newLot.toString());
+    safeSetItem('forex_lot_size', newLot.toString());
     syncMarketAndGenerateSignal(selectedAsset, timeframe, balance, highReliabilityOnly, forexLeverageRef.current, newLot);
   }, [selectedAsset, timeframe, balance, highReliabilityOnly, syncMarketAndGenerateSignal]);
 
@@ -529,13 +530,13 @@ export default function App() {
   // User Account Size Update Handler
   const handleUpdateBalance = useCallback((newBalance: number) => {
     setBalance(newBalance);
-    localStorage.setItem('user_account_balance', newBalance.toString());
+    safeSetItem('user_account_balance', newBalance.toString());
     syncMarketAndGenerateSignal(selectedAsset, timeframe, newBalance, highReliabilityOnly, forexLeverageRef.current, forexLotSizeRef.current);
   }, [selectedAsset, timeframe, highReliabilityOnly, syncMarketAndGenerateSignal]);
 
   const handleToggleHighReliability = useCallback((enabled: boolean) => {
     setHighReliabilityOnly(enabled);
-    localStorage.setItem('high_reliability_only', enabled ? 'true' : 'false');
+    safeSetItem('high_reliability_only', enabled ? 'true' : 'false');
     syncMarketAndGenerateSignal(selectedAsset, timeframe, balance, enabled, forexLeverageRef.current, forexLotSizeRef.current);
   }, [selectedAsset, timeframe, balance, syncMarketAndGenerateSignal]);
 
@@ -561,7 +562,7 @@ export default function App() {
 
   const handleToggleReversalAlerts = useCallback((enabled: boolean) => {
     setReversalAlertsEnabled(enabled);
-    localStorage.setItem('reversal_alerts_enabled', enabled ? 'true' : 'false');
+    safeSetItem('reversal_alerts_enabled', enabled ? 'true' : 'false');
   }, []);
 
   // 2. Fetch AI World News & Forecast
@@ -675,8 +676,8 @@ export default function App() {
                 lastTelegramDispatchRef.current = { symbol: newSignal.symbol, type: newSignal.type, timestamp: now };
                 const formatted = formatTelegramSignal(newSignal);
                 const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const token = localStorage.getItem('tg_bot_token') || undefined;
-                const chat = localStorage.getItem('tg_chat_id') || undefined;
+                const token = safeGetItem('tg_bot_token') || undefined;
+                const chat = safeGetItem('tg_chat_id') || undefined;
 
                 fetch('/api/telegram/dispatch', {
                   method: 'POST',

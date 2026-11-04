@@ -18,6 +18,7 @@ import {
   RefreshCw,
   AlertTriangle,
 } from 'lucide-react';
+import { safeGetItem, safeSetItem } from '../utils/storage';
 
 interface TelegramDispatchModalProps {
   signal: LiveSignal | null;
@@ -36,8 +37,8 @@ export const TelegramDispatchModal: React.FC<TelegramDispatchModalProps> = ({
   onToggleAutoDispatch,
 }) => {
   const [copied, setCopied] = useState<boolean>(false);
-  const [botToken, setBotToken] = useState<string>(() => localStorage.getItem('tg_bot_token') || '');
-  const [chatId, setChatId] = useState<string>(() => localStorage.getItem('tg_chat_id') || '');
+  const [botToken, setBotToken] = useState<string>(() => safeGetItem('tg_bot_token', ''));
+  const [chatId, setChatId] = useState<string>(() => safeGetItem('tg_chat_id', ''));
   const [isSending, setIsSending] = useState<boolean>(false);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [isTesting, setIsTesting] = useState<boolean>(false);
@@ -58,7 +59,7 @@ export const TelegramDispatchModal: React.FC<TelegramDispatchModalProps> = ({
         setHistory(data.history || []);
         if (data.chatId && !chatId) {
           setChatId(data.chatId);
-          localStorage.setItem('tg_chat_id', data.chatId);
+          safeSetItem('tg_chat_id', data.chatId);
         }
         if (data.channelTitle) {
           setChannelTitle(data.channelTitle);
@@ -74,8 +75,8 @@ export const TelegramDispatchModal: React.FC<TelegramDispatchModalProps> = ({
   }, [isOpen]);
 
   const handleSaveConfig = async () => {
-    localStorage.setItem('tg_bot_token', botToken.trim());
-    localStorage.setItem('tg_chat_id', chatId.trim());
+    safeSetItem('tg_bot_token', botToken.trim());
+    safeSetItem('tg_chat_id', chatId.trim());
     try {
       await fetch('/api/telegram/config', {
         method: 'POST',
@@ -109,8 +110,8 @@ export const TelegramDispatchModal: React.FC<TelegramDispatchModalProps> = ({
 
       if (data.success && data.chatId) {
         setChatId(String(data.chatId));
-        localStorage.setItem('tg_chat_id', String(data.chatId));
-        localStorage.setItem('tg_bot_token', botToken.trim());
+        safeSetItem('tg_chat_id', String(data.chatId));
+        safeSetItem('tg_bot_token', botToken.trim());
         setSendStatus({
           success: true,
           msg: `🎉 ${data.message || `Detected and connected to ${data.chatTitle || 'group'}!`}`,

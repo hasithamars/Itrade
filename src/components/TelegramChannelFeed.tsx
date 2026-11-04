@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Users,
 } from 'lucide-react';
+import { safeGetItem, safeSetItem } from '../utils/storage';
 
 interface TelegramChannelFeedProps {
   currentSignal: LiveSignal | null;
@@ -32,8 +33,8 @@ export const TelegramChannelFeed: React.FC<TelegramChannelFeedProps> = ({
   onToggleAutoDispatch,
   onOpenModal,
 }) => {
-  const [botToken, setBotToken] = useState<string>(() => localStorage.getItem('tg_bot_token') || '');
-  const [chatId, setChatId] = useState<string>(() => localStorage.getItem('tg_chat_id') || '');
+  const [botToken, setBotToken] = useState<string>(() => safeGetItem('tg_bot_token', ''));
+  const [chatId, setChatId] = useState<string>(() => safeGetItem('tg_chat_id', ''));
   const [copied, setCopied] = useState<boolean>(false);
   const [isSending, setIsSending] = useState<boolean>(false);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
@@ -51,7 +52,7 @@ export const TelegramChannelFeed: React.FC<TelegramChannelFeedProps> = ({
         setHistory(data.history || []);
         if (data.chatId && !chatId) {
           setChatId(data.chatId);
-          localStorage.setItem('tg_chat_id', data.chatId);
+          safeSetItem('tg_chat_id', data.chatId);
         }
       }
     } catch {}
@@ -98,8 +99,8 @@ export const TelegramChannelFeed: React.FC<TelegramChannelFeedProps> = ({
 
       if (data.success && data.chatId) {
         setChatId(String(data.chatId));
-        localStorage.setItem('tg_chat_id', String(data.chatId));
-        localStorage.setItem('tg_bot_token', botToken.trim());
+        safeSetItem('tg_chat_id', String(data.chatId));
+        safeSetItem('tg_bot_token', botToken.trim());
         setStatusMsg({
           success: true,
           text: `🎉 Connected as @${data.botUsername || 'bot'}! Test message sent to your Telegram group.`,

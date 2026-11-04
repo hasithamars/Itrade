@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Wallet, ShieldCheck, DollarSign, Zap, Check, AlertTriangle, ArrowRight, Sliders, Scale } from 'lucide-react';
+import { safeSetItem } from '../utils/storage';
 
 interface AccountSizeModalProps {
   isOpen: boolean;
@@ -56,8 +57,8 @@ export const AccountSizeModal: React.FC<AccountSizeModalProps> = ({
       onToggleHighReliability(shieldActive);
       if (onSaveForexLeverage) onSaveForexLeverage(selectedLeverage);
       if (onSaveForexLotSize) onSaveForexLotSize(activeLot);
-      localStorage.setItem('forex_leverage', selectedLeverage.toString());
-      localStorage.setItem('forex_lot_size', activeLot.toString());
+      safeSetItem('forex_leverage', selectedLeverage.toString());
+      safeSetItem('forex_lot_size', activeLot.toString());
       onClose();
     }
   };
